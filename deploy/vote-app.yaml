@@ -17,21 +17,8 @@ spec:
         deployment: vote-app
     spec:
       containers:
-      - env:
-        - name: ENDPOINT_ADDRESS
-          value: db
-        - name: PORT
-          value: "3306"
-        - name: DB_NAME
-          value: vote
-        - name: MASTER_USERNAME
-          value: user
-        - name: MASTER_PASSWORD
-          value: password
-        - name: DB_TYPE
-          value: mysql
+      - name: vote-app
         image: quay.io/sjbylo/flask-vote-app:latest 
-        name: vote-app
         ports:
         - containerPort: 8080
           protocol: TCP
@@ -55,58 +42,6 @@ spec:
     deployment: vote-app
   type: ClusterIP
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: db
-    app.kubernetes.io/component: db
-    app.kubernetes.io/instance: db
-  name: db
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      deployment: db
-  template:
-    metadata:
-      labels:
-        deployment: db
-    spec:
-      containers:
-      - env:
-        - name: MYSQL_DATABASE
-          value: vote
-        - name: MYSQL_PASSWORD
-          value: password
-        - name: MYSQL_USER
-          value: user
-        image: registry.access.redhat.com/rhscl/mysql-57-rhel7:latest
-        imagePullPolicy: IfNotPresent
-        name: db
-        ports:
-        - containerPort: 3306
-          protocol: TCP
-      restartPolicy: Always
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: db
-    app.kubernetes.io/component: db
-    app.kubernetes.io/instance: db
-  name: db
-spec:
-  ports:
-  - name: 3306-tcp
-    port: 3306
-    protocol: TCP
-    targetPort: 3306
-  selector:
-    deployment: db
-  type: ClusterIP
----
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -116,7 +51,6 @@ metadata:
     app.kubernetes.io/instance: vote-app
   name: vote-app
 spec:
-#  host: vote-app-demo1.apps.cluster-cebu-187d.cebu-187d.example.opentlc.com
   port:
     targetPort: 8080-tcp
   to:
